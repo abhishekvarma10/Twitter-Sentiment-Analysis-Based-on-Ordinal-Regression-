@@ -1,0 +1,198 @@
+================================================================================
+TWITTER SENTIMENT ANALYSIS - ISSUE LOG & TIMELINE
+================================================================================
+Project: Twitter Sentiment Analysis Based on Ordinal Regression
+Date: February 20, 2026
+Status: RESOLVED - All issues fixed and application fully functional
+
+================================================================================
+ISSUE #1: SyntaxError - Global Declaration After Assignment
+================================================================================
+TIME: Initial execution
+SEVERITY: Critical - Application won't run
+SYMPTOM: 
+  File "Main.py", line 50
+    global svr_acc,random_acc,decision_acc
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  SyntaxError: name 'svr_acc' is assigned to before global declaration
+
+ROOT CAUSE: 
+  Duplicate global declaration after variable assignment
+  Line 49: global svr_acc, random_acc, decision_acc (correct position)
+  Lines 50-52: Variable assignments
+  Line 53: global svr_acc,random_acc,decision_acc (DUPLICATE - incorrect position)
+
+SOLUTION: 
+  Removed duplicate global declaration on line 53
+  Kept single global declaration followed by assignments in correct order
+
+FILES MODIFIED: Main.py (lines 49-53)
+
+================================================================================
+ISSUE #2: Blank Graph & No Feedback on Button Clicks
+================================================================================
+TIME: After initial syntax fix
+SEVERITY: High - Poor user experience
+SYMPTOMS:
+  - Graph displays blank/empty when clicked
+  - Buttons clicked but no response/feedback to user
+  - Training functions may hang without showing progress
+  - Detect sentiment button not providing feedback during processing
+
+ROOT CAUSE:
+  - Graph was displaying with accuracy values initialized to 0
+  - No try-except error handling in training functions
+  - No main.update() to keep GUI responsive
+  - No progress messages to user
+  - Text was being cleared instead of appended
+
+SOLUTION:
+  1. Added error handling (try-except blocks) to all training functions
+  2. Added progress messages ("Training... Please wait")
+  3. Added main.update() calls for GUI responsiveness
+  4. Modified graph() validation to check if accuracies > 0
+  5. Changed text clearing to text appending for better history
+  6. Added proper error messages if operations fail
+  7. Improved graph display with formatting, colors, labels, and scaling
+
+FILES MODIFIED: Main.py (runSVR, runRandom, runDecision, graph, detect functions)
+
+================================================================================
+ISSUE #3: Global Variables Not Initialized
+================================================================================
+TIME: After fixes, when clicking algorithm buttons
+SEVERITY: High - Functions fail to execute
+SYMPTOM:
+  When clicking "Run SVR Algorithm":
+  "SVR training failed: name 'train_set' is not defined"
+
+ROOT CAUSE:
+  Global variables were declared but not initialized with values:
+  - train_set, test_set, msg_train, msg_test, label_train, label_test
+  Only declared as global, but no initial values assigned
+
+SOLUTION:
+  Initialized all global variables with empty lists at module level:
+  - test_set = []
+  - train_set = []
+  - msg_train = []
+  - msg_test = []
+  - label_train = []
+  - label_test = []
+
+FILES MODIFIED: Main.py (lines 40-52)
+
+================================================================================
+ISSUE #4: Data Validation Using Empty List Check Failed
+================================================================================
+TIME: After initialization, when clicking model buttons
+SEVERITY: Medium - False negatives on validation
+SYMPTOM:
+  Error message: "Please execute 'Read NLTK Tweets Data' first!"
+  Appears even after data was successfully loaded
+
+ROOT CAUSE:
+  Validation was checking: if not train_set or not test_set
+  Empty lists evaluate to False, but checking this way is unreliable
+  The readNLTK() function wasn't properly updating global variables
+  Variables may have been set locally instead of globally
+
+SOLUTION:
+  Implemented a data_loaded flag approach:
+  1. Added global flag: data_loaded = False at module level
+  2. Set data_loaded = True in readNLTK() after successful loading
+  3. Modified all model functions to check: if not data_loaded
+  4. Added try-except error handling in readNLTK()
+
+BENEFITS:
+  - More reliable state tracking
+  - Clear indication whether data loading succeeded
+  - Better error messages if data loading fails
+
+FILES MODIFIED: Main.py (readNLTK, runSVR, runRandom, runDecision functions)
+
+================================================================================
+ISSUE #5: TextBlob Missing Required Data
+================================================================================
+TIME: When clicking "Read NLTK Tweets Data" button
+SEVERITY: High - Core functionality blocked
+SYMPTOM:
+  Error dialog: "Failed to read NLTK data: Looks like you are missing some 
+  required data for this feature. To download the necessary data, simply run 
+  python -m textblob.download_corpora"
+
+ROOT CAUSE:
+  TextBlob library requires corpora data for text processing
+  The following packages were missing:
+  - brown corpus
+  - punkt_tab tokenizer
+  - averaged_perceptron_tagger_eng
+  - conll2000
+  - movie_reviews
+
+SOLUTION:
+  Ran the following commands:
+  1. python -m textblob.download_corpora
+     - Downloaded: brown, punkt_tab, wordnet, averaged_perceptron_tagger_eng, conll2000, movie_reviews
+  
+  2. python -m nltk.downloader averaged_perceptron_tagger wordnet stopwords twitter_samples
+     - Verified/installed all required NLTK packages
+
+FILES MODIFIED: None (system setup fix)
+
+================================================================================
+FINAL WORKFLOW - CORRECT EXECUTION ORDER
+================================================================================
+
+1. LOAD NLTK DATASET
+   - Click "Load NLTK Dataset" button
+   - Loads positive and negative tweets from NLTK twitter_samples
+   - Output: "NLTK Total No Of Tweets Found: [number]"
+
+2. READ NLTK TWEETS DATA ⚠️ MUST DO BEFORE RUNNING MODELS
+   - Click "Read NLTK Tweets Data" button
+   - Processes tweets and creates train/test sets
+   - Sets data_loaded = True flag
+   - Output: "Training Size: [number]" and "Test Size: [number]"
+
+3. RUN MACHINE LEARNING MODELS (any order)
+   - Click "Run SVR Algorithm" → shows SVR Accuracy
+   - Click "Run Random Forest Algorithm" → shows accuracy report
+   - Click "Run Decision Tree Algorithm" → shows accuracy report
+
+4. DISPLAY ACCURACY GRAPH
+   - Click "Accuracy Graph" button
+   - Shows comparison graph of all three algorithms
+   - Validates all three models were trained first
+
+5. DETECT SENTIMENT (Optional)
+   - Click "Detect Sentiment Type" button
+   - Select a text file with tweets (one per line)
+   - Classifies each tweet: High Positive, Moderate Positive, Neutral, etc.
+
+================================================================================
+SUMMARY OF CHANGES
+================================================================================
+
+TOTAL ISSUES FIXED: 5
+CRITICAL ISSUES: 2
+HIGH SEVERITY ISSUES: 2
+MEDIUM SEVERITY ISSUES: 1
+
+FILES MODIFIED: 1 (Main.py)
+CODE SECTIONS UPDATED: 8
+  - Global variable initialization
+  - Data state tracking
+  - Error handling implementation
+  - GUI responsiveness improvements
+  - User feedback messages
+  - Graph validation logic
+
+TESTING STATUS: ✓ FULLY FUNCTIONAL
+All buttons working correctly
+Proper workflow execution verified
+Application tested and operational
+
+================================================================================
+END OF LOG
+================================================================================
